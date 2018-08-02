@@ -172,3 +172,91 @@ Algorithm
 > 
 
 ## Clustering
+Given a distance function on the objects, the clustering problem seeks to divide them into groups so that, intuitively, objects within the same group are “close,” and objects in different groups are “far apart.”
+
+#### Clusterings of Maximum Spacing
+We define the spacing of a k-clustering to be the minimum distance between any pair of points lying in different clusters. Given that we want points in different clusters to be far apart from one another, a natural goal is to seek the k-clustering with the maximum possible spacing.
+
+### Algorithm
+The connected components will be the clusters, try to bring nearby points together into the same cluster as rapidly as possible. Thus start by drawing an edge between the closest pair of points. Then draw an edge between the next closest pair of points. Notice that we are only interested in the connected components of the graph H, not the full set of edges; so if we are about to add the edge (pi, pj) and find that pi and pj already belong to the same cluster, we will refrain from adding the edge.
+
+Connection to minimum spanning tree? We are running Kruskal’s Algorithm but stopping it just before it adds its last k − 1 edges. 
+
+### Analyzing the Algorithm
+> The components C1, C2, . . . , Ck formed by deleting the k − 1 most expensive edges of the minimum spanning tree T constitute a k-clustering of maximum spacing.
+
+## Huffman Codes and Data Compression
+
+#### Encoding Symbols Using Bits
+Reducing the average number of bits per letter
+
+##### Prefix Codes
+a prefix code for a set S of letters is a function γ that maps each letter x ∈ S to some sequence of zeros and ones, in such a way that for distinct x, y ∈ S, the sequence γ (x) is not a prefix of the sequence γ (y)
+
+##### Optimal Prefix Codes
+Suppose that for each letter x ∈ S, there is a frequency fx
+
+encoding length = Sum over x∈S of nfx|γ (x)| = n * Sum over x∈S of fx|γ (x)|.
+
+We denote the average number of bits required per letter ABL(γ) = Sum over x∈S of fx|γ (x)|
+
+> A prefix code that minimizes the average number of bits per letter ABL(γ ) is a optimal prefix code.
+> 
+#### Design the Algorithm
+* Representing Prefix Codes Using Binary Trees: For each letter x ∈ S, we follow the path from the root to the leaf labeled x; each time the path goes from a node to its left child, we write down a 0, and each time the path goes from a node to its right child, we write down a 1. We take the resulting string of bits as the encoding of x.
+
+> The encoding os S constructred from T is a prefix code.
+
+A binary tree is full if each node that is not a leaf has two children.
+
+> The binary tree corresponding to the optimal prefix code is full.
+
+###### What If We Knew the Tree Structure of the Optimal Prefix Code? 
+What if someone gave us the binary tree T∗ that corresponded to an optimal prefix code, but not the labeling of the leaves? To complete the solution, we would need to figure out which letter should label which leaf of T∗, and then we’d have our code. 
+
+> (4.29) Suppose that u and v are leaves of T∗, such that depth(u) < depth(v). Further, suppose that in a labeling of T∗ corresponding to an optimal prefix code, leaf u is labeled with y ∈ S and leaf v is labeled with z ∈ S. Then fy ≥ fz.
+
+We first take all leaves f depth 1 (if there are any) and label them with the highest-frequency letters n any order. We then take all leaves of depth 2 (if there are any) and label them ith the next-highest-frequency letters in any order. 
+
+* Consider a leaf v in T∗ whose depth is as large as possible. v has a sibling w.
+
+> w is leaf of T*
+
+Our evel-by-level process of labeling T∗, as justified by (4.29), will get to the level ontaining v and w last. The leaves at this level will get the lowest-frequency letters.
+
+> There is an optimal prefix code, with corresponding tree T∗, in which the two lowest-frequency letters are assigned to leaves that are siblings in T∗
+
+##### Algorithm
+Huffman's Algorithm
+```
+To construct a prefix code for an alphabet S, with given frequencies:
+  If S has two letters then
+    Encode one letter using 0 and the other letter using 1
+  Else
+    Let y∗ and z∗ be the two lowest-frequency letters
+    Form a new alphabet S' by deleting y∗ and z∗ and
+      replacing them with a new letter ω of frequency fy∗ + fz∗
+    Recursively construct a prefix code γ' for S', with tree T'
+    Define a prefix code for S as follows:
+      Start with T'
+      Take the leaf labeled ω and add two children below it
+        labeled y∗ and z∗
+Endif
+```
+
+#### Analyzing the Algorithm
+##### Optimality
+Clearly it is optimal for all two-letter alphabets (since it uses only one bit per letter). So suppose by induction that it is optimal for all alphabets of size k − 1, and consider an input instance consisting of an alphabet S of size k
+
+> ABL(T') = ABL(T) − fω
+
+> The Huffman code for a given alphabet achieves the minimum average
+number of bits per letter of any prefix code.
+
+Suppose by way of contradiction that the tree T produced by our greedy algorithm is not optimal. There is such a tree Z in which the leaves representing y∗ and z∗ are siblings and ABL(Z) < ABL(T). We have ABL(Z') < ABL(T') -> contradiction.
+
+##### Implementation and Running Time
+The recursive calls of the algorithm define a sequence of k − 1 iterations over smaller and smaller alphabets, and each iteration except the last consists simply of identifying the two lowest-frequency letters and merging them into a single letter that has the combined frequency.
+
+
+Using an implementation of priority queues via heaps, we can make each insertion and extraction of the minimum run in time O(log k). Each iteration—which performs just three of these operations—takes time O(log k). Summing over all k iterations, we get a total running time of O(k log k)
